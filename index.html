@@ -348,6 +348,7 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
   </div>
 
   <div id="view-sessions" class="view">
+    <input type="text" id="session-search" placeholder="Filter by project..." style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;margin-bottom:10px;box-sizing:border-box;">
     <div id="session-list"></div>
   </div>
   <div class="page-bottom"></div>
@@ -879,19 +880,31 @@ function renderSessions() {
   if (!sessionsData) return;
   var el = document.getElementById('session-list');
   clearEl(el);
+  var searchTerm = (document.getElementById('session-search').value || '').toLowerCase();
   var sessions = sessionsData.sessions;
   if (dateFilter) {
     sessions = sessions.filter(function(s) { return s.date === dateFilter; });
   }
+  if (searchTerm) {
+    sessions = sessions.filter(function(s) { return (s.project || '').toLowerCase().includes(searchTerm); });
+  }
   if (!sessions.length) {
-    showLoading(el, dateFilter ? 'No sessions on ' + dateFilter : 'No sessions found');
+    showLoading(el, dateFilter ? 'No sessions on ' + dateFilter : (searchTerm ? 'No matching sessions' : 'No sessions found'));
     return;
   }
-  if (dateFilter) {
+  if (dateFilter || searchTerm) {
     var clearBtn = document.createElement('button');
     clearBtn.style.cssText = 'background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;margin-bottom:10px;';
-    clearBtn.textContent = 'Showing ' + dateFilter + ' \u2014 Clear filter';
-    clearBtn.addEventListener('click', function() { dateFilter = null; renderDailyBreakdown(); renderSessions(); });
+    var label = [];
+    if (dateFilter) label.push(dateFilter);
+    if (searchTerm) label.push('"' + searchTerm + '"');
+    clearBtn.textContent = 'Filter: ' + label.join(', ') + ' \u2014 Clear';
+    clearBtn.addEventListener('click', function() {
+      dateFilter = null;
+      document.getElementById('session-search').value = '';
+      renderDailyBreakdown();
+      renderSessions();
+    });
     el.appendChild(clearBtn);
   }
   sessions.forEach(function(s) {
@@ -961,6 +974,11 @@ document.getElementById('refresh-btn').addEventListener('click', function() {
 document.getElementById('model-filter').addEventListener('change', function() {
   modelFilter = this.value;
   if (usageData) renderOverview();
+});
+
+/* ── Event: Session Search ────────────────── */
+document.getElementById('session-search').addEventListener('input', function() {
+  if (sessionsData) renderSessions();
 });
 
 /* ── Event: Bottom Nav ────────────────────── */
