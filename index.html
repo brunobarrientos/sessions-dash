@@ -96,6 +96,7 @@ header h1 { font-size: 18px; font-weight: 600; }
 .stat-value.orange { color: var(--accent); }
 .stat-value.cyan { color: var(--cyan); }
 .stat-value.green { color: var(--green); }
+.stat-value.red { color: var(--red); }
 .stat-value.purple { color: var(--purple); }
 
 /* ── Section Title ────────────────────────── */
@@ -455,7 +456,9 @@ function totalTokens(u) { return (u.input||0) + (u.output||0); }
 function fetchUsage() {
   showLoading(document.getElementById('stats-grid'));
   var days = currentDays === 0 ? 1 : currentDays;
-  return fetch('/api/usage?days=' + days)
+  var useCompare = days > 1 && days < 9999;
+  var url = useCompare ? '/api/usage/compare?days=' + days : '/api/usage?days=' + days;
+  return fetch(url)
     .then(function(r) { return r.json(); })
     .then(function(data) {
       usageData = data;
@@ -538,15 +541,23 @@ function renderStatCards() {
 
   var useCost = unit === '$';
   var monthlyProjection = avgPerDay * 30;
+  var changePct = d.changePercent;
+  var prevCost = d.previousCost || 0;
+  var changeCard = changePct !== undefined ? [{
+    label: 'vs Prev',
+    value: (changePct >= 0 ? '+' : '') + changePct.toFixed(1) + '%',
+    color: changePct > 0 ? 'red' : (changePct < 0 ? 'green' : 'purple')
+  }] : [];
   var cards = useCost ? [
     { label: 'Total Cost', value: '$' + d.totalEstimatedCost.toFixed(2), color: 'amber' },
+  ].concat(changeCard).concat([
     { label: 'Avg / Day', value: '$' + avgPerDay.toFixed(2), color: 'orange' },
     { label: 'Proj. Month', value: '$' + monthlyProjection.toFixed(0), color: 'orange' },
     { label: 'Sessions', value: d.totalSessions.toString(), color: 'cyan' },
     { label: 'Real Tokens $', value: '$' + totalReal.toFixed(2), color: 'green' },
     { label: 'Cache $', value: '$' + totalCacheCost.toFixed(2), color: 'green' },
     { label: 'Models Used', value: modelCount.toString(), color: 'purple' },
-  ] : [
+  ]) : [
     { label: 'Total Tokens', value: fmtTokens(allInput + allOutput), color: 'amber' },
     { label: 'Input Tokens', value: fmtTokens(allInput), color: 'green' },
     { label: 'Output Tokens', value: fmtTokens(allOutput), color: 'orange' },

@@ -165,6 +165,114 @@ def compute_usage(days=7):
     }
 
 
+def compute_usage_comparison(days=7):
+    """Compute usage for current and previous period for comparison."""
+    # Current period
+    current = compute_usage(days)
+    # Previous period (offset by days)
+    previous = compute_usage_with_offset(days, days)
+    prev_cost = previous.get('totalEstimatedCost', 0) or 0
+    curr_cost = current.get('totalEstimatedCost', 0) or 0
+    if prev_cost > 0:
+        change_pct = ((curr_cost - prev_cost) / prev_cost) * 100
+    else:
+        change_pct = 0
+    current['previousCost'] = round(prev_cost, 2)
+    current['changePercent'] = round(change_pct, 1)
+    return current
+
+
+def compute_usage_with_offset(days=7, offset_days=0):
+    """Compute usage with offset (for comparison periods)."""
+    claude_dir = os.path.expanduser('~/.claude/projects')
+    if not os.path.isdir(claude_dir):
+        return {'byModel': {}, 'byDay': [], 'totalEstimatedCost': 0, 'totalSessions': 0, 'days': days}
+
+    now = datetime.now()
+    end_cutoff = now - timedelta(days=offset_days)
+    start_cutoff = end_cutoff - timedelta(days=days)
+    cutoff_str = end_cutoff.strftime('%Y-%m-%d')
+    start_str = start_cutoff.strftime('%Y-%m-%d')
+    by_model = {}
+    by_day = {}
+    sessions_by_day = {}
+
+    for project_folder in os.listdir(claude_dir):
+        project_path = os.path.join(claude_dir, project_folder)
+        if not os.path.isdir(project_path):
+            continue
+        for jsonl_file in glob.glob(os.path.join(project_path, '*.jsonl')):
+            try:
+                mtime = os.path.getmtime(jsonl_file)
+                if datetime.fromtimestamp(mtime) < start_cutoff or datetime.fromtimestamp(mtime) > end_cutoff:
+                    continue
+                session_day = datetime.fromtimestamp(mtime).strftime('%Y-%m-%d')
+                if session_day >= start_str and session_day < cutoff_str:
+                    sessions_by_day[session_day] = sessions_by_day.get(session_day, 0) + 1
+
+                with open(jsonl_file, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or '"usage"' not in line:
+                            continue
+                        try:
+                            entry = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        ts = entry.get('timestamp', '')
+                        if ts:
+                            ts_date = ts[:10]
+                            if ts_date < start_str or ts_date >= cutoff_str:
+                                continue
+                        else:
+                            continue
+                        msg = entry.get('message', {})
+                        if not isinstance(msg, dict):
+                            continue
+                        usage = msg.get('usage')
+                        if not usage:
+                            continue
+                        model = entry.get('model') or msg.get('model', 'unknown')
+                        if model.startswith('<'):
+                            continue
+                        day_str = ts[:10] if ts else session_day
+                        if day_str < start_str or day_str >= cutoff_str:
+                            continue
+
+                        for bucket in (by_model, by_day.setdefault(day_str, {})):
+                            if model not in bucket:
+                                bucket[model] = {'input': 0, 'output': 0, 'cacheRead': 0, 'cacheWrite': 0}
+                        by_model[model]['input'] += usage.get('input_tokens', 0)
+                        by_model[model]['output'] += usage.get('output_tokens', 0)
+                        by_model[model]['cacheRead'] += usage.get('cache_read_input_tokens', 0)
+                        by_model[model]['cacheWrite'] += usage.get('cache_creation_input_tokens', 0)
+                        by_day[day_str][model]['input'] += usage.get('input_tokens', 0)
+                        by_day[day_str][model]['output'] += usage.get('output_tokens', 0)
+                        by_day[day_str][model]['cacheRead'] += usage.get('cache_read_input_tokens', 0)
+                        by_day[day_str][model]['cacheWrite'] += usage.get('cache_creation_input_tokens', 0)
+            except Exception:
+                continue
+
+    by_model = {m: u for m, u in by_model.items() if (u['input'] + u['output']) > 0}
+    for model, usage in by_model.items():
+        usage['estimatedCost'] = round(_cost(model, usage), 4)
+
+    by_day_list = sorted(
+        [{'date': d, 'models': {m: u for m, u in models.items() if (u['input'] + u['output']) > 0},
+          'sessions': sessions_by_day.get(d, 0)}
+         for d, models in by_day.items() if models],
+        key=lambda x: x['date'], reverse=True
+    )
+
+    return {
+        'byModel': by_model,
+        'byDay': by_day_list,
+        'totalEstimatedCost': round(sum(u['estimatedCost'] for u in by_model.values()), 2),
+        'totalSessions': sum(sessions_by_day.values()),
+        'days': days,
+    }
+
+
 def compute_sessions(days=7, limit=50):
     """Compute per-session cost breakdown."""
     claude_dir = os.path.expanduser('~/.claude/projects')
@@ -267,6 +375,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if parsed.path == '/api/usage':
             days = int(params.get('days', ['7'])[0])
             self._json(compute_usage(days))
+        elif parsed.path == '/api/usage/compare':
+            days = int(params.get('days', ['7'])[0])
+            self._json(compute_usage_comparison(days))
         elif parsed.path == '/api/sessions':
             days = int(params.get('days', ['7'])[0])
             limit = int(params.get('limit', ['50'])[0])

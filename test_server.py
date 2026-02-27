@@ -219,5 +219,37 @@ class TestModelPricing:
         assert 'claude-haiku-4-5-20251001' in MODEL_PRICING
 
 
+class TestComputeUsageComparison:
+    """Tests for compute_usage_comparison() function."""
+
+    @patch('os.path.isdir')
+    @patch('os.listdir')
+    def test_comparison_returns_change_percent(self, mock_listdir, mock_isdir):
+        """Test that comparison includes change percent."""
+        from server import compute_usage_comparison
+        mock_isdir.return_value = True
+        mock_listdir.return_value = []
+        result = compute_usage_comparison(7)
+        assert 'changePercent' in result
+        assert 'previousCost' in result
+
+
+class TestComputeUsageWithOffset:
+    """Tests for compute_usage_with_offset() function."""
+
+    @patch('os.path.isdir')
+    @patch('os.listdir')
+    def test_offset_returns_data(self, mock_listdir, mock_isdir):
+        """Test that offset function returns usage data."""
+        from server import compute_usage_with_offset
+        mock_isdir.return_value = True
+        mock_listdir.return_value = []
+        result = compute_usage_with_offset(7, 7)
+        assert 'byModel' in result
+        assert 'byDay' in result
+        assert 'totalEstimatedCost' in result
+        assert result['totalEstimatedCost'] == 0
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
