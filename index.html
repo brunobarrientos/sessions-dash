@@ -909,8 +909,13 @@ function renderSessions() {
     });
     el.appendChild(clearBtn);
   }
+  var maxCost = Math.max.apply(null, sessions.map(function(s) { return s.estimatedCost || 0; }));
   sessions.forEach(function(s) {
     var card = makeDiv('session-card');
+    if (s.estimatedCost === maxCost && maxCost > 0) {
+      card.style.border = '1px solid var(--accent)';
+      card.style.boxShadow = '0 0 8px rgba(233,84,32,0.3)';
+    }
     var hdr = makeDiv('session-header');
     var proj = makeDiv('session-project', s.project);
     var cost = makeDiv('session-cost');
