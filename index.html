@@ -320,6 +320,7 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
     <select id="model-filter" style="background:var(--bg);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;margin-left:auto;">
       <option value="">All Models</option>
     </select>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:8px;">1-5:period u:unit r:refresh</span>
   </div>
 </header>
 
@@ -975,6 +976,31 @@ document.querySelectorAll('nav button').forEach(function(btn) {
 
 /* ── Init: Restore Unit Toggle State ──────── */
 document.querySelectorAll('.unit-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.unit === unit); });
+
+/* ── Keyboard Shortcuts ─────────────────── */
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  var key = e.key;
+  var periodMap = {'1': 0, '2': 7, '3': 30, '4': 90, '5': 9999};
+  if (key in periodMap) {
+    var days = periodMap[key];
+    document.querySelectorAll('.tab').forEach(function(t) {
+      t.classList.toggle('active', parseInt(t.dataset.days) === days);
+    });
+    currentDays = days;
+    dateFilter = null;
+    sessionsData = null;
+    fetchUsage();
+  } else if (key === 'u' || key === 'U') {
+    unit = unit === '$' ? 'tokens' : '$';
+    try { localStorage.setItem('sdUnit', unit); } catch(ex) {}
+    document.querySelectorAll('.unit-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.unit === unit); });
+    if (usageData) renderOverview();
+    if (sessionsData) renderSessions();
+  } else if (key === 'r' || key === 'R') {
+    document.getElementById('refresh-btn').click();
+  }
+});
 
 /* ── Boot ─────────────────────────────────── */
 fetchUsage();
