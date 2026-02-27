@@ -35,6 +35,13 @@ header {
 }
 header h1 { font-size: 18px; font-weight: 600; }
 .header-actions { display: flex; gap: 6px; align-items: center; }
+.home-link {
+  display: flex; align-items: center; gap: 4px; padding: 5px 10px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text2); text-decoration: none; font-size: 12px;
+  transition: color 0.15s, background 0.15s; white-space: nowrap;
+}
+.home-link:hover { color: var(--accent); background: var(--surface-light); }
 .unit-toggle {
   display: flex; background: var(--bg); border: 1px solid var(--border);
   border-radius: 6px; overflow: hidden;
@@ -286,6 +293,7 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
   <div class="header-top">
     <h1>AI Usage</h1>
     <div class="header-actions">
+      <a id="accueilLink" class="home-link" title="Go to Accueil">🏠 Accueil</a>
       <div class="unit-toggle" id="unit-toggle">
         <button class="unit-btn active" data-unit="$">$</button>
         <button class="unit-btn" data-unit="tokens">Tokens</button>
@@ -349,6 +357,9 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
 </nav>
 
 <script>
+/* ── Accueil link (dynamic host) ──────────── */
+document.getElementById('accueilLink').href = location.protocol + '//' + location.hostname + ':8080';
+
 /* ── Global State ─────────────────────────── */
 var currentDays = 7;
 var usageData = null;
