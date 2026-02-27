@@ -543,6 +543,7 @@ function renderStatCards() {
 
   var useCost = unit === '$';
   var monthlyProjection = avgPerDay * 30;
+  var avgPerSession = d.totalSessions > 0 ? d.totalEstimatedCost / d.totalSessions : 0;
   var changePct = d.changePercent;
   var prevCost = d.previousCost || 0;
   var changeCard = changePct !== undefined ? [{
@@ -554,6 +555,7 @@ function renderStatCards() {
     { label: 'Total Cost', value: '$' + d.totalEstimatedCost.toFixed(2), color: 'amber' },
   ].concat(changeCard).concat([
     { label: 'Avg / Day', value: '$' + avgPerDay.toFixed(2), color: 'orange' },
+    { label: 'Avg / Session', value: '$' + avgPerSession.toFixed(2), color: 'orange' },
     { label: 'Proj. Month', value: '$' + monthlyProjection.toFixed(0), color: 'orange' },
     { label: 'Sessions', value: d.totalSessions.toString(), color: 'cyan' },
     { label: 'Real Tokens $', value: '$' + totalReal.toFixed(2), color: 'green' },
