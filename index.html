@@ -534,9 +534,11 @@ function renderStatCards() {
   });
 
   var useCost = unit === '$';
+  var monthlyProjection = avgPerDay * 30;
   var cards = useCost ? [
     { label: 'Total Cost', value: '$' + d.totalEstimatedCost.toFixed(2), color: 'amber' },
     { label: 'Avg / Day', value: '$' + avgPerDay.toFixed(2), color: 'orange' },
+    { label: 'Proj. Month', value: '$' + monthlyProjection.toFixed(0), color: 'orange' },
     { label: 'Sessions', value: d.totalSessions.toString(), color: 'cyan' },
     { label: 'Real Tokens $', value: '$' + totalReal.toFixed(2), color: 'green' },
     { label: 'Cache $', value: '$' + totalCacheCost.toFixed(2), color: 'green' },
@@ -546,6 +548,7 @@ function renderStatCards() {
     { label: 'Input Tokens', value: fmtTokens(allInput), color: 'green' },
     { label: 'Output Tokens', value: fmtTokens(allOutput), color: 'orange' },
     { label: 'Cache Tokens', value: fmtTokens(allCache), color: 'cyan' },
+    { label: 'Proj. Month', value: fmtTokens((allInput + allOutput) * 30 / numDays), color: 'amber' },
     { label: 'Sessions', value: d.totalSessions.toString(), color: 'cyan' },
     { label: 'Models Used', value: modelCount.toString(), color: 'purple' },
   ];
