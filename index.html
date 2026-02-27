@@ -6,64 +6,230 @@
 <title>AI Usage</title>
 <style>
 :root {
-  --bg: #0d1117; --surface: #161b22; --border: #30363d;
-  --text: #e6edf3; --text2: #8b949e; --accent: #E95420;
-  --green: #3fb950; --red: #f85149; --yellow: #d29922;
-  --radius: 10px;
+  --bg: #0d1117; --surface: #161b22; --surface-light: #1f2937;
+  --border: #30363d; --border-dim: rgba(255,255,255,0.05);
+  --text: #e6edf3; --text2: #8b949e; --text-muted: #555;
+  --accent: #E95420; --accent-dark: #C34113;
+  --green: #3fb950; --red: #f85149; --amber: #FFB000; --cyan: #00D4FF;
+  --purple: #9B8EFF; --radius: 10px;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: -apple-system, system-ui, sans-serif;
   background: var(--bg); color: var(--text);
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-left: env(safe-area-inset-left);
   -webkit-text-size-adjust: 100%;
 }
+
+/* ── Header ───────────────────────────────── */
 header {
   position: sticky; top: 0; z-index: 10;
   background: var(--surface); border-bottom: 1px solid var(--border);
-  padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+}
+.header-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
 }
 header h1 { font-size: 18px; font-weight: 600; }
-.tabs {
-  display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 3px;
+.header-actions { display: flex; gap: 6px; align-items: center; }
+.unit-toggle {
+  display: flex; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
 }
+.unit-btn {
+  background: transparent; border: none; color: var(--text-muted);
+  padding: 5px 10px; font-size: 12px; cursor: pointer;
+  transition: background 0.15s, color 0.15s; white-space: nowrap;
+}
+.unit-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
+.unit-btn:hover:not(.active) { background: var(--surface-light); color: var(--text); }
+.refresh-btn {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text2); padding: 5px 8px; cursor: pointer; display: flex;
+  align-items: center; transition: color 0.15s;
+}
+.refresh-btn:hover { color: var(--accent); }
+.refresh-btn svg { width: 16px; height: 16px; }
+.refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.header-bottom { display: flex; gap: 4px; }
+.tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 3px; }
 .tab {
   padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
   color: var(--text2); cursor: pointer; border: none; background: none;
   transition: all 0.15s;
 }
 .tab.active { background: var(--accent); color: #fff; }
-.container { padding: 12px; max-width: 600px; margin: 0 auto; }
-.summary {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;
+
+/* ── Container ────────────────────────────── */
+.container { padding: 12px; max-width: 700px; margin: 0 auto; }
+
+/* ── Stat Cards ───────────────────────────── */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px; margin-bottom: 16px;
 }
 .stat-card {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px;
+  border-radius: var(--radius); padding: 14px; text-align: center;
 }
-.stat-card .label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-card .value { font-size: 24px; font-weight: 700; margin-top: 4px; }
-.stat-card .sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
-.cost { color: var(--accent); }
+.stat-label {
+  font-size: 10px; color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.stat-value {
+  font-size: 22px; font-weight: 700; margin-top: 4px;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+}
+.stat-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.stat-value.amber { color: var(--amber); }
+.stat-value.orange { color: var(--accent); }
+.stat-value.cyan { color: var(--cyan); }
+.stat-value.green { color: var(--green); }
+.stat-value.purple { color: var(--purple); }
+
+/* ── Section Title ────────────────────────── */
 .section-title {
-  font-size: 14px; font-weight: 600; color: var(--text2);
-  margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.5px;
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 0.5px;
 }
-.model-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 12px; background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); margin-bottom: 6px;
+
+/* ── Cost Trend Chart ─────────────────────── */
+.chart-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 12px; overflow: hidden;
 }
-.model-name { font-size: 13px; font-weight: 500; }
-.model-cost { font-size: 14px; font-weight: 600; color: var(--accent); }
-.model-tokens { font-size: 11px; color: var(--text2); }
-.day-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 12px; border-bottom: 1px solid var(--border);
+.cost-trend {
+  height: 220px; padding: 16px 16px 16px 52px;
+  position: relative; box-sizing: border-box;
 }
-.day-date { font-size: 13px; font-weight: 500; }
-.day-cost { font-size: 13px; color: var(--accent); font-weight: 600; }
-.day-sessions { font-size: 11px; color: var(--text2); }
+.trend-yaxis {
+  position: absolute; left: 8px; top: 16px; width: 40px; height: 160px;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.trend-y-label {
+  font-family: 'SF Mono', monospace; font-size: 9px; color: var(--text-muted);
+  text-align: right;
+}
+.trend-container {
+  display: flex; align-items: flex-end; height: 160px; gap: 4px;
+}
+.trend-bar-wrap {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  height: 100%; justify-content: flex-end; min-width: 0; overflow: hidden;
+}
+.trend-bar-val {
+  font-family: 'SF Mono', monospace; font-size: 9px; color: var(--text2);
+  margin-bottom: 3px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 100%;
+}
+.trend-bar {
+  width: 100%; max-width: 36px;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--amber) 100%);
+  border-radius: 3px 3px 0 0; min-height: 3px;
+  transition: height 0.4s ease;
+}
+.trend-bar:hover { filter: brightness(1.2); }
+.trend-bar-date {
+  font-family: 'SF Mono', monospace; font-size: 9px; color: var(--text-muted);
+  margin-top: 5px; text-align: center;
+}
+.empty-state {
+  text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 13px;
+}
+
+/* ── Heatmap ──────────────────────────────── */
+.heatmap-wrap { padding: 16px; overflow-x: auto; }
+.heatmap-months { display: flex; gap: 3px; margin-bottom: 6px; }
+.heatmap-month { font-size: 10px; color: var(--text-muted); width: 15px; }
+.heatmap-grid { display: flex; gap: 3px; min-width: max-content; }
+.heatmap-week { display: flex; flex-direction: column; gap: 3px; }
+.heatmap-day {
+  width: 12px; height: 12px; border-radius: 2px;
+  background: var(--surface-light); position: relative;
+}
+.heatmap-day.level-1 { background: #0e4429; }
+.heatmap-day.level-2 { background: #006d32; }
+.heatmap-day.level-3 { background: #26a641; }
+.heatmap-day.level-4 { background: #39d353; }
+.heatmap-day:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
+.heatmap-legend {
+  display: flex; align-items: center; gap: 4px; margin-top: 10px;
+  font-size: 10px; color: var(--text-muted);
+}
+.heatmap-legend-box {
+  width: 12px; height: 12px; border-radius: 2px; background: var(--surface-light);
+}
+.heatmap-legend-box.level-1 { background: #0e4429; }
+.heatmap-legend-box.level-2 { background: #006d32; }
+.heatmap-legend-box.level-3 { background: #26a641; }
+.heatmap-legend-box.level-4 { background: #39d353; }
+.heatmap-tooltip {
+  position: fixed; background: #2d2d2d; border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 9px; font-size: 11px;
+  font-family: 'SF Mono', monospace; color: var(--text);
+  pointer-events: none; z-index: 9999; white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: none;
+}
+.heatmap-tooltip.visible { display: block; }
+
+/* ── Model Table ──────────────────────────── */
+.model-table-wrap { padding: 12px; overflow-x: auto; }
+.model-table {
+  width: 100%; border-collapse: collapse;
+  font-family: 'SF Mono', monospace; font-size: 12px;
+}
+.model-table th {
+  text-align: right; padding: 8px 10px; color: var(--text-muted);
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
+}
+.model-table th:first-child { text-align: left; }
+.model-table td {
+  padding: 8px 10px; text-align: right;
+  border-bottom: 1px solid var(--border-dim); color: var(--text);
+}
+.model-table td:first-child { text-align: left; color: var(--cyan); font-weight: 600; }
+.model-table tr:hover td { background: rgba(255,255,255,0.03); }
+
+/* ── Daily Breakdown ──────────────────────── */
+.daily-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 4px; border-bottom: 1px solid var(--border-dim);
+  border-radius: 4px; transition: background 0.15s; cursor: pointer;
+}
+.daily-row:hover { background: rgba(255,255,255,0.04); }
+.daily-row.filter-active {
+  background: rgba(233,84,32,0.10); border-left: 2px solid var(--accent);
+  padding-left: 6px;
+}
+.daily-date {
+  font-family: 'SF Mono', monospace; font-size: 12px; color: var(--text2);
+  min-width: 52px; flex-shrink: 0;
+}
+.daily-bars { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.bar-row { display: flex; align-items: center; gap: 6px; }
+.bar-label {
+  font-family: 'SF Mono', monospace; font-size: 10px; color: var(--text-muted);
+  min-width: 80px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bar-track {
+  flex: 1; height: 16px; background: var(--surface-light);
+  border-radius: 3px; overflow: hidden;
+}
+.bar-fill {
+  height: 100%; border-radius: 3px; transition: width 0.4s ease; min-width: 2px;
+}
+.bar-value {
+  font-family: 'SF Mono', monospace; font-size: 10px; color: var(--text2);
+  min-width: 56px; flex-shrink: 0; text-align: right;
+}
+
+/* ── Sessions View ────────────────────────── */
 .session-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 12px; margin-bottom: 8px;
@@ -71,14 +237,21 @@ header h1 { font-size: 18px; font-weight: 600; }
 .session-header { display: flex; justify-content: space-between; align-items: start; }
 .session-project { font-size: 13px; font-weight: 600; word-break: break-all; }
 .session-cost { font-size: 14px; font-weight: 700; color: var(--accent); white-space: nowrap; margin-left: 8px; }
-.session-meta { font-size: 11px; color: var(--text2); margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap; }
+.session-meta {
+  font-size: 11px; color: var(--text2); margin-top: 4px;
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
 .badge {
   display: inline-block; padding: 2px 8px; border-radius: 4px;
-  font-size: 11px; font-weight: 500; background: var(--border); color: var(--text);
+  font-size: 10px; font-weight: 500; background: var(--border); color: var(--text);
 }
-.loading { text-align: center; padding: 40px; color: var(--text2); }
+
+/* ── Views ────────────────────────────────── */
 .view { display: none; }
 .view.active { display: block; }
+.loading { text-align: center; padding: 40px; color: var(--text2); }
+
+/* ── Bottom Nav ───────────────────────────── */
 nav {
   position: fixed; bottom: 0; left: 0; right: 0;
   background: var(--surface); border-top: 1px solid var(--border);
@@ -92,29 +265,74 @@ nav button {
 nav button.active { color: var(--accent); }
 nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; }
 .page-bottom { height: 70px; }
+
+/* ── Responsive ───────────────────────────── */
+@media (max-width: 640px) {
+  .stats-grid { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 6px; }
+  .stat-card { padding: 10px; }
+  .stat-value { font-size: 18px; }
+  .bar-label { min-width: 60px; font-size: 9px; }
+  .daily-date { min-width: 44px; font-size: 11px; }
+  .cost-trend { height: 200px; padding-left: 44px; }
+  .trend-yaxis { left: 4px; width: 36px; }
+  .model-table { font-size: 11px; }
+  .model-table th, .model-table td { padding: 6px 6px; }
+}
 </style>
 </head>
 <body>
+
 <header>
-  <h1>AI Usage</h1>
-  <div class="tabs" id="period-tabs">
-    <button class="tab" data-days="1">1d</button>
-    <button class="tab active" data-days="7">7d</button>
-    <button class="tab" data-days="30">30d</button>
-    <button class="tab" data-days="90">90d</button>
+  <div class="header-top">
+    <h1>AI Usage</h1>
+    <div class="header-actions">
+      <div class="unit-toggle" id="unit-toggle">
+        <button class="unit-btn active" data-unit="$">$</button>
+        <button class="unit-btn" data-unit="tokens">Tokens</button>
+      </div>
+      <button class="refresh-btn" id="refresh-btn" title="Refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 2v6h-6M3 12a9 9 0 0115.36-6.36L21 8M3 22v-6h6M21 12a9 9 0 01-15.36 6.36L3 16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="header-bottom">
+    <div class="tabs" id="period-tabs">
+      <button class="tab" data-days="0">Today</button>
+      <button class="tab active" data-days="7">7d</button>
+      <button class="tab" data-days="30">30d</button>
+      <button class="tab" data-days="90">90d</button>
+      <button class="tab" data-days="9999">All</button>
+    </div>
   </div>
 </header>
 
 <div class="container">
   <div id="view-overview" class="view active">
-    <div class="summary" id="summary-cards"><div class="loading">Loading...</div></div>
-    <div class="section-title">By Model</div>
-    <div id="model-list"></div>
-    <div class="section-title">Daily Breakdown</div>
-    <div id="day-list"></div>
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div class="section-title" id="trend-title">Cost Trend</div>
+    <div class="chart-card">
+      <div class="cost-trend" id="cost-trend"></div>
+    </div>
+
+    <div class="section-title">Session Activity</div>
+    <div class="chart-card">
+      <div class="heatmap-wrap" id="heatmap"></div>
+    </div>
+
+    <div class="section-title" id="model-title">Cost by Model</div>
+    <div class="chart-card">
+      <div class="model-table-wrap" id="model-table"></div>
+    </div>
+
+    <div class="section-title" id="daily-title">Daily Cost Breakdown</div>
+    <div id="daily-breakdown"></div>
   </div>
+
   <div id="view-sessions" class="view">
-    <div id="session-list"><div class="loading">Loading...</div></div>
+    <div id="session-list"></div>
   </div>
   <div class="page-bottom"></div>
 </div>
@@ -131,128 +349,568 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
 </nav>
 
 <script>
-const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
-let currentDays = 7;
-let usageData = null;
-let sessionsData = null;
+/* ── Global State ─────────────────────────── */
+var currentDays = 7;
+var usageData = null;
+var sessionsData = null;
+var dateFilter = null;
 
-function fmt(n) {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
-  return n.toString();
-}
-function shortModel(m) {
-  return m.replace('claude-', '').replace(/-2024\d+/, '').replace(/-2025\d+/, '');
-}
-const RATES = {
+var unit = (function() {
+  try { return localStorage.getItem('sdUnit') || '$'; } catch(e) { return '$'; }
+})();
+
+var MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/* ── Model Colors & Rates ─────────────────── */
+var MODEL_COLORS = {
+  'MiniMax-M2.5': '#E95420', 'MiniMax-M2.1': '#C44010',
+  'k2p5': '#00D4FF', 'kimi-k2.5': '#00D4FF', 'glm-4.7': '#4AF626',
+  'claude-opus-4-6': '#FFB000',
+  'claude-sonnet-4-6': '#9B8EFF', 'claude-sonnet-4-5-20250929': '#7B6EDF',
+  'claude-3-5-sonnet-20241022': '#5B4EBF',
+  'claude-haiku-4-5-20251001': '#5BC8EB', 'claude-3-5-haiku-20241022': '#3AA8CB',
+};
+var RATES = {
   'MiniMax-M2.5':{i:.3,o:1.2,cr:.03,cw:.3},'MiniMax-M2.1':{i:.3,o:1.2,cr:.03,cw:.3},
   'claude-opus-4-6':{i:15,o:75,cr:1.5,cw:15},'claude-sonnet-4-6':{i:3,o:15,cr:.3,cw:3.75},
   'claude-sonnet-4-5-20250929':{i:3,o:15,cr:.3,cw:3.75},'claude-3-5-sonnet-20241022':{i:3,o:15,cr:.3,cw:3.75},
   'claude-3-5-haiku-20241022':{i:.8,o:4,cr:.08,cw:.8},'claude-haiku-4-5-20251001':{i:.8,o:4,cr:.08,cw:.8},
   'glm-4.7':{i:.6,o:2.2,cr:.11,cw:.6},'k2p5':{i:.6,o:2.5,cr:.1,cw:.6},
+  'kimi-k2.5':{i:.6,o:2.5,cr:.1,cw:.6},
 };
-const DEF={i:1,o:5,cr:.1,cw:1};
+var DEF_RATE = {i:1,o:5,cr:.1,cw:1};
+
+/* ── Safe DOM helpers ─────────────────────── */
+function clearEl(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+function makeDiv(cls, text) {
+  var d = document.createElement('div');
+  if (cls) d.className = cls;
+  if (text !== undefined) d.textContent = text;
+  return d;
+}
+function makeSpan(cls, text) {
+  var s = document.createElement('span');
+  if (cls) s.className = cls;
+  if (text !== undefined) s.textContent = text;
+  return s;
+}
+function showLoading(el, msg) {
+  clearEl(el);
+  el.appendChild(makeDiv('loading', msg || 'Loading...'));
+}
+function showEmpty(el, msg) {
+  clearEl(el);
+  el.appendChild(makeDiv('empty-state', msg || 'No data'));
+}
+
+/* ── Formatting helpers ───────────────────── */
+function fmt(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toString();
+}
+function fmtTokens(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(2)+'B';
+  if (n >= 1e6) return (n/1e6).toFixed(2)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toString();
+}
+function shortModel(m) {
+  return m.replace('claude-', '').replace(/-2024\d+/, '').replace(/-2025\d+/, '');
+}
 function costOf(model, u) {
-  const r = RATES[model] || DEF;
-  const ni = Math.max(0, (u.input||0) - (u.cacheRead||0) - (u.cacheWrite||0));
+  var r = RATES[model] || DEF_RATE;
+  var ni = Math.max(0, (u.input||0) - (u.cacheRead||0) - (u.cacheWrite||0));
   return (ni*r.i + (u.output||0)*r.o + (u.cacheRead||0)*r.cr + (u.cacheWrite||0)*r.cw) / 1e6;
 }
-
-async function fetchUsage() {
-  document.getElementById('summary-cards').innerHTML = '<div class="loading">Loading...</div>';
-  try {
-    const r = await fetch('/api/usage?days=' + currentDays);
-    usageData = await r.json();
-    renderOverview();
-  } catch { document.getElementById('summary-cards').innerHTML = '<div class="loading">Failed to load</div>'; }
+function costBreakdown(model, u) {
+  var r = RATES[model] || DEF_RATE;
+  var ni = Math.max(0, (u.input||0) - (u.cacheRead||0) - (u.cacheWrite||0));
+  var realCost = (ni*r.i + (u.output||0)*r.o) / 1e6;
+  var cacheCost = ((u.cacheRead||0)*r.cr + (u.cacheWrite||0)*r.cw) / 1e6;
+  return { real: realCost, cache: cacheCost, total: realCost + cacheCost };
 }
-async function fetchSessions() {
-  document.getElementById('session-list').innerHTML = '<div class="loading">Loading...</div>';
-  try {
-    const r = await fetch('/api/sessions?days=' + currentDays + '&limit=100');
-    sessionsData = await r.json();
-    renderSessions();
-  } catch { document.getElementById('session-list').innerHTML = '<div class="loading">Failed to load</div>'; }
-}
+function totalTokens(u) { return (u.input||0) + (u.output||0); }
 
-function renderOverview() {
+/* ── Data Fetching ────────────────────────── */
+function fetchUsage() {
+  showLoading(document.getElementById('stats-grid'));
+  var days = currentDays === 0 ? 1 : currentDays;
+  return fetch('/api/usage?days=' + days)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      usageData = data;
+      if (currentDays === 0) filterToday();
+      renderOverview();
+    })
+    .catch(function() {
+      showLoading(document.getElementById('stats-grid'), 'Failed to load');
+    });
+}
+function fetchSessions() {
+  showLoading(document.getElementById('session-list'));
+  var days = currentDays === 0 ? 1 : currentDays;
+  return fetch('/api/sessions?days=' + days + '&limit=200')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      sessionsData = data;
+      renderSessions();
+    })
+    .catch(function() {
+      showLoading(document.getElementById('session-list'), 'Failed to load');
+    });
+}
+function filterToday() {
   if (!usageData) return;
-  const d = usageData;
-  const totalTokens = Object.values(d.byModel).reduce((s, u) => s + u.input + u.output, 0);
+  var today = new Date().toISOString().slice(0,10);
+  usageData.byDay = usageData.byDay.filter(function(d) { return d.date === today; });
+  var bm = {};
+  usageData.byDay.forEach(function(day) {
+    Object.entries(day.models).forEach(function(pair) {
+      var m = pair[0], u = pair[1];
+      if (!bm[m]) bm[m] = {input:0,output:0,cacheRead:0,cacheWrite:0};
+      bm[m].input += u.input||0;
+      bm[m].output += u.output||0;
+      bm[m].cacheRead += u.cacheRead||0;
+      bm[m].cacheWrite += u.cacheWrite||0;
+    });
+  });
+  Object.entries(bm).forEach(function(pair) { pair[1].estimatedCost = costOf(pair[0], pair[1]); });
+  usageData.byModel = bm;
+  usageData.totalEstimatedCost = Object.values(bm).reduce(function(s,u) { return s + (u.estimatedCost||0); }, 0);
+  usageData.totalSessions = usageData.byDay.reduce(function(s,d) { return s + d.sessions; }, 0);
+}
 
-  const sc = document.getElementById('summary-cards');
-  sc.innerHTML = '';
-  const c1 = document.createElement('div'); c1.className = 'stat-card';
-  c1.innerHTML = '<div class="label">Total Cost</div><div class="value cost"></div><div class="sub"></div>';
-  c1.querySelector('.value').textContent = '$' + d.totalEstimatedCost.toFixed(2);
-  c1.querySelector('.sub').textContent = currentDays + ' day' + (currentDays > 1 ? 's' : '');
-  const c2 = document.createElement('div'); c2.className = 'stat-card';
-  c2.innerHTML = '<div class="label">Sessions</div><div class="value"></div><div class="sub"></div>';
-  c2.querySelector('.value').textContent = d.totalSessions;
-  c2.querySelector('.sub').textContent = fmt(totalTokens) + ' tokens';
-  sc.appendChild(c1); sc.appendChild(c2);
-
-  const ml = document.getElementById('model-list'); ml.innerHTML = '';
-  Object.entries(d.byModel).sort((a, b) => (b[1].estimatedCost||0) - (a[1].estimatedCost||0)).forEach(([m, u]) => {
-    const row = document.createElement('div'); row.className = 'model-row';
-    const left = document.createElement('div');
-    const nm = document.createElement('div'); nm.className = 'model-name'; nm.textContent = shortModel(m);
-    const tk = document.createElement('div'); tk.className = 'model-tokens'; tk.textContent = fmt(u.input)+' in / '+fmt(u.output)+' out';
-    left.appendChild(nm); left.appendChild(tk);
-    const cost = document.createElement('div'); cost.className = 'model-cost'; cost.textContent = '$'+(u.estimatedCost||0).toFixed(2);
-    row.appendChild(left); row.appendChild(cost); ml.appendChild(row);
+/* ── Render: Stat Cards ───────────────────── */
+function renderStatCards() {
+  var d = usageData;
+  var el = document.getElementById('stats-grid');
+  clearEl(el);
+  var bm = d.byModel;
+  var allInput = Object.values(bm).reduce(function(s,u) { return s + (u.input||0); }, 0);
+  var allOutput = Object.values(bm).reduce(function(s,u) { return s + (u.output||0); }, 0);
+  var allCache = Object.values(bm).reduce(function(s,u) { return s + (u.cacheRead||0) + (u.cacheWrite||0); }, 0);
+  var numDays = d.byDay ? d.byDay.length : 1;
+  var avgPerDay = numDays > 0 ? d.totalEstimatedCost / numDays : 0;
+  var modelCount = Object.keys(bm).length;
+  var totalReal = 0, totalCacheCost = 0;
+  Object.entries(bm).forEach(function(pair) {
+    var b = costBreakdown(pair[0], pair[1]);
+    totalReal += b.real; totalCacheCost += b.cache;
   });
 
-  const dl = document.getElementById('day-list'); dl.innerHTML = '';
-  (d.byDay || []).forEach(day => {
-    let dayCost = 0;
-    for (const [m, u] of Object.entries(day.models)) dayCost += costOf(m, u);
-    const row = document.createElement('div'); row.className = 'day-row';
-    const left = document.createElement('div');
-    const dt = document.createElement('div'); dt.className = 'day-date'; dt.textContent = day.date;
-    const ds = document.createElement('div'); ds.className = 'day-sessions'; ds.textContent = day.sessions + ' sessions';
-    left.appendChild(dt); left.appendChild(ds);
-    const cost = document.createElement('div'); cost.className = 'day-cost'; cost.textContent = '$'+dayCost.toFixed(2);
-    row.appendChild(left); row.appendChild(cost); dl.appendChild(row);
+  var useCost = unit === '$';
+  var cards = useCost ? [
+    { label: 'Total Cost', value: '$' + d.totalEstimatedCost.toFixed(2), color: 'amber' },
+    { label: 'Avg / Day', value: '$' + avgPerDay.toFixed(2), color: 'orange' },
+    { label: 'Sessions', value: d.totalSessions.toString(), color: 'cyan' },
+    { label: 'Real Tokens $', value: '$' + totalReal.toFixed(2), color: 'green' },
+    { label: 'Cache $', value: '$' + totalCacheCost.toFixed(2), color: 'green' },
+    { label: 'Models Used', value: modelCount.toString(), color: 'purple' },
+  ] : [
+    { label: 'Total Tokens', value: fmtTokens(allInput + allOutput), color: 'amber' },
+    { label: 'Input Tokens', value: fmtTokens(allInput), color: 'green' },
+    { label: 'Output Tokens', value: fmtTokens(allOutput), color: 'orange' },
+    { label: 'Cache Tokens', value: fmtTokens(allCache), color: 'cyan' },
+    { label: 'Sessions', value: d.totalSessions.toString(), color: 'cyan' },
+    { label: 'Models Used', value: modelCount.toString(), color: 'purple' },
+  ];
+
+  cards.forEach(function(c) {
+    var card = makeDiv('stat-card');
+    var val = makeDiv('stat-value ' + c.color, c.value);
+    var lbl = makeDiv('stat-label', c.label);
+    card.appendChild(val); card.appendChild(lbl);
+    el.appendChild(card);
   });
 }
 
+/* ── Render: Cost Trend Chart ─────────────── */
+function renderCostTrend() {
+  var el = document.getElementById('cost-trend');
+  var titleEl = document.getElementById('trend-title');
+  titleEl.textContent = unit === 'tokens' ? 'Token Trend' : 'Cost Trend';
+  clearEl(el);
+  if (!usageData || !usageData.byDay || usageData.byDay.length === 0) {
+    showEmpty(el, 'No trend data');
+    return;
+  }
+
+  var useTokens = unit === 'tokens';
+  var buckets = usageData.byDay.slice().reverse(); // oldest first
+  var labelFn = function(d) { return d.date.slice(5); };
+
+  if (currentDays > 14 && buckets.length > 14) {
+    buckets = bucketByWeek(buckets);
+    labelFn = function(d) {
+      var dt = new Date(d.date + 'T12:00:00');
+      return MONTH_SHORT[dt.getMonth()] + ' ' + dt.getDate();
+    };
+  }
+
+  var values = buckets.map(function(day) {
+    var v = 0;
+    Object.entries(day.models || {}).forEach(function(pair) {
+      v += useTokens ? totalTokens(pair[1]) : costOf(pair[0], pair[1]);
+    });
+    return { date: day.date, value: v };
+  });
+
+  var maxVal = Math.max.apply(null, values.map(function(d) { return d.value; }).concat([1]));
+  var fmtY = useTokens ? function(v) { return fmtTokens(v); } : function(v) { return '$' + v.toFixed(0); };
+  var fmtBar = useTokens ? function(v) { return fmtTokens(v); } : function(v) { return '$' + v.toFixed(2); };
+
+  var yAxis = makeDiv('trend-yaxis');
+  [fmtY(maxVal), fmtY(maxVal/2), fmtY(0)].forEach(function(t) {
+    yAxis.appendChild(makeSpan('trend-y-label', t));
+  });
+  el.appendChild(yAxis);
+
+  var container = makeDiv('trend-container');
+  values.forEach(function(d) {
+    var wrap = makeDiv('trend-bar-wrap');
+    var val = makeDiv('trend-bar-val', fmtBar(d.value));
+    var bar = makeDiv('trend-bar');
+    bar.style.height = (maxVal > 0 ? d.value / maxVal * 100 : 0) + '%';
+    var lbl = makeDiv('trend-bar-date', labelFn(d));
+    wrap.appendChild(val); wrap.appendChild(bar); wrap.appendChild(lbl);
+    container.appendChild(wrap);
+  });
+  el.appendChild(container);
+}
+
+function bucketByWeek(days) {
+  var weeks = {};
+  days.forEach(function(day) {
+    var dt = new Date(day.date + 'T12:00:00');
+    var weekStart = new Date(dt);
+    weekStart.setDate(dt.getDate() - dt.getDay());
+    var key = weekStart.toISOString().slice(0,10);
+    if (!weeks[key]) weeks[key] = { date: key, models: {}, sessions: 0 };
+    weeks[key].sessions += day.sessions || 0;
+    Object.entries(day.models || {}).forEach(function(pair) {
+      var m = pair[0], u = pair[1];
+      if (!weeks[key].models[m]) weeks[key].models[m] = {input:0,output:0,cacheRead:0,cacheWrite:0};
+      weeks[key].models[m].input += u.input||0;
+      weeks[key].models[m].output += u.output||0;
+      weeks[key].models[m].cacheRead += u.cacheRead||0;
+      weeks[key].models[m].cacheWrite += u.cacheWrite||0;
+    });
+  });
+  return Object.values(weeks).sort(function(a,b) { return a.date.localeCompare(b.date); });
+}
+
+/* ── Render: Heatmap ──────────────────────── */
+function renderHeatmap() {
+  var el = document.getElementById('heatmap');
+  clearEl(el);
+
+  var sessionsByDay = {};
+  var maxSessions = 1;
+  if (usageData && usageData.byDay) {
+    usageData.byDay.forEach(function(day) {
+      sessionsByDay[day.date] = day.sessions || 0;
+      if (day.sessions > maxSessions) maxSessions = day.sessions;
+    });
+  }
+
+  var windowDays = currentDays >= 90 ? 365 : 90;
+  var today = new Date();
+  var start = new Date(today);
+  start.setDate(start.getDate() - (windowDays - 1));
+  start.setDate(start.getDate() - start.getDay());
+
+  var weeks = [];
+  var cur = new Date(start);
+  while (cur <= today) {
+    var week = [];
+    for (var i = 0; i < 7; i++) {
+      var ds = cur.toISOString().slice(0,10);
+      var sessions = sessionsByDay[ds] || 0;
+      var level = 0;
+      if (sessions > 0) {
+        var ratio = sessions / maxSessions;
+        if (ratio <= 0.25) level = 1;
+        else if (ratio <= 0.5) level = 2;
+        else if (ratio <= 0.75) level = 3;
+        else level = 4;
+      }
+      week.push({ date: ds, sessions: sessions, level: level });
+      cur.setDate(cur.getDate() + 1);
+    }
+    weeks.push(week);
+  }
+
+  var monthsRow = makeDiv('heatmap-months');
+  var lastMonth = -1;
+  weeks.forEach(function(week) {
+    var m = new Date(week[0].date + 'T12:00:00').getMonth();
+    var span = makeSpan('heatmap-month');
+    if (m !== lastMonth) { span.textContent = MONTH_SHORT[m]; lastMonth = m; }
+    monthsRow.appendChild(span);
+  });
+  el.appendChild(monthsRow);
+
+  var tooltip = document.getElementById('heatmapTooltip');
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.id = 'heatmapTooltip'; tooltip.className = 'heatmap-tooltip';
+    document.body.appendChild(tooltip);
+  }
+
+  var grid = makeDiv('heatmap-grid');
+  weeks.forEach(function(week) {
+    var wEl = makeDiv('heatmap-week');
+    week.forEach(function(day) {
+      var dEl = makeDiv('heatmap-day' + (day.level > 0 ? ' level-' + day.level : ''));
+      var tipText = day.sessions > 0
+        ? day.date + ': ' + day.sessions + ' session' + (day.sessions !== 1 ? 's' : '')
+        : day.date + ': no activity';
+      dEl.addEventListener('mouseenter', function() {
+        tooltip.textContent = tipText;
+        tooltip.classList.add('visible');
+        var rect = dEl.getBoundingClientRect();
+        tooltip.style.left = (rect.left + rect.width/2 - tooltip.offsetWidth/2) + 'px';
+        tooltip.style.top = (rect.top - tooltip.offsetHeight - 6) + 'px';
+      });
+      dEl.addEventListener('mouseleave', function() { tooltip.classList.remove('visible'); });
+      wEl.appendChild(dEl);
+    });
+    grid.appendChild(wEl);
+  });
+  el.appendChild(grid);
+
+  var legend = makeDiv('heatmap-legend');
+  legend.appendChild(makeSpan(null, 'Less'));
+  for (var lvl = 0; lvl <= 4; lvl++) {
+    legend.appendChild(makeDiv('heatmap-legend-box' + (lvl > 0 ? ' level-' + lvl : '')));
+  }
+  legend.appendChild(makeSpan(null, 'More'));
+  el.appendChild(legend);
+}
+
+/* ── Render: Model Table ──────────────────── */
+function renderModelTable() {
+  var el = document.getElementById('model-table');
+  var titleEl = document.getElementById('model-title');
+  titleEl.textContent = unit === '$' ? 'Cost by Model' : 'Token Usage by Model';
+  clearEl(el);
+
+  var models = Object.entries(usageData.byModel || {});
+  if (models.length === 0) {
+    showEmpty(el, 'No usage data');
+    return;
+  }
+
+  var sorted = models.sort(function(a,b) {
+    if (unit === 'tokens') return totalTokens(b[1]) - totalTokens(a[1]);
+    return costOf(b[0], b[1]) - costOf(a[0], a[1]);
+  });
+
+  var table = document.createElement('table'); table.className = 'model-table';
+  var thead = document.createElement('thead');
+  var hrow = document.createElement('tr');
+  var headers = unit === 'tokens'
+    ? ['Model', 'Input', 'Output', 'Cache Read', 'Cache Write', 'Total']
+    : ['Model', 'Real $', 'Cache $', 'Total $'];
+  headers.forEach(function(h) {
+    var th = document.createElement('th'); th.textContent = h; hrow.appendChild(th);
+  });
+  thead.appendChild(hrow); table.appendChild(thead);
+
+  var tbody = document.createElement('tbody');
+  sorted.forEach(function(pair) {
+    var m = pair[0], u = pair[1];
+    var tr = document.createElement('tr');
+    var cells;
+    if (unit === 'tokens') {
+      cells = [
+        shortModel(m), fmtTokens(u.input||0), fmtTokens(u.output||0),
+        fmtTokens(u.cacheRead||0), fmtTokens(u.cacheWrite||0),
+        fmtTokens(totalTokens(u))
+      ];
+    } else {
+      var b = costBreakdown(m, u);
+      cells = [shortModel(m), '$'+b.real.toFixed(2), '$'+b.cache.toFixed(2), '$'+b.total.toFixed(2)];
+    }
+    cells.forEach(function(txt, i) {
+      var td = document.createElement('td'); td.textContent = txt;
+      if (i === 0) td.title = m;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody); el.appendChild(table);
+}
+
+/* ── Render: Daily Breakdown ──────────────── */
+function renderDailyBreakdown() {
+  var el = document.getElementById('daily-breakdown');
+  var titleEl = document.getElementById('daily-title');
+  titleEl.textContent = unit === 'tokens' ? 'Daily Token Breakdown' : 'Daily Cost Breakdown';
+  clearEl(el);
+
+  var byDay = usageData.byDay;
+  if (!byDay || byDay.length === 0) {
+    showEmpty(el, 'No daily data');
+    return;
+  }
+
+  var useCost = unit === '$';
+  var maxVal = 0;
+  byDay.forEach(function(day) {
+    Object.entries(day.models || {}).forEach(function(pair) {
+      var v = useCost ? costOf(pair[0], pair[1]) : totalTokens(pair[1]);
+      if (v > maxVal) maxVal = v;
+    });
+  });
+
+  byDay.forEach(function(day) {
+    var entries = Object.entries(day.models || {}).map(function(pair) {
+      var v = useCost ? costOf(pair[0], pair[1]) : totalTokens(pair[1]);
+      return [pair[0], pair[1], v];
+    }).sort(function(a,b) { return b[2] - a[2]; });
+
+    var row = makeDiv('daily-row');
+    if (dateFilter === day.date) row.classList.add('filter-active');
+    row.title = 'Click to filter sessions for ' + day.date;
+    (function(d) { row.addEventListener('click', function() { toggleDateFilter(d); }); })(day.date);
+
+    row.appendChild(makeDiv('daily-date', day.date.slice(5)));
+
+    var barsEl = makeDiv('daily-bars');
+    entries.forEach(function(entry) {
+      var m = entry[0], val = entry[2];
+      var pct = maxVal > 0 ? (val / maxVal * 100) : 0;
+      var color = MODEL_COLORS[m] || '#888';
+
+      var barRow = makeDiv('bar-row');
+      var label = makeDiv('bar-label', shortModel(m)); label.title = m;
+      var track = makeDiv('bar-track');
+      var fill = makeDiv('bar-fill');
+      fill.style.width = pct + '%'; fill.style.background = color;
+      track.appendChild(fill);
+      var valEl = makeDiv('bar-value', useCost ? '$' + val.toFixed(3) : fmtTokens(val));
+      barRow.appendChild(label); barRow.appendChild(track); barRow.appendChild(valEl);
+      barsEl.appendChild(barRow);
+    });
+    row.appendChild(barsEl);
+    el.appendChild(row);
+  });
+}
+
+/* ── Date Filter for Sessions ─────────────── */
+function toggleDateFilter(date) {
+  dateFilter = dateFilter === date ? null : date;
+  renderDailyBreakdown();
+  if (dateFilter) {
+    document.querySelectorAll('nav button').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelector('nav button[data-view="sessions"]').classList.add('active');
+    document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+    document.getElementById('view-sessions').classList.add('active');
+    if (!sessionsData) {
+      fetchSessions();
+    } else {
+      renderSessions();
+    }
+  }
+}
+
+/* ── Render: Sessions ─────────────────────── */
 function renderSessions() {
   if (!sessionsData) return;
-  const sl = document.getElementById('session-list'); sl.innerHTML = '';
-  if (!sessionsData.sessions.length) { sl.innerHTML = '<div class="loading">No sessions found</div>'; return; }
-  sessionsData.sessions.forEach(s => {
-    const card = document.createElement('div'); card.className = 'session-card';
-    const hdr = document.createElement('div'); hdr.className = 'session-header';
-    const proj = document.createElement('div'); proj.className = 'session-project'; proj.textContent = s.project;
-    const cost = document.createElement('div'); cost.className = 'session-cost'; cost.textContent = '$'+s.estimatedCost.toFixed(3);
+  var el = document.getElementById('session-list');
+  clearEl(el);
+  var sessions = sessionsData.sessions;
+  if (dateFilter) {
+    sessions = sessions.filter(function(s) { return s.date === dateFilter; });
+  }
+  if (!sessions.length) {
+    showLoading(el, dateFilter ? 'No sessions on ' + dateFilter : 'No sessions found');
+    return;
+  }
+  if (dateFilter) {
+    var clearBtn = document.createElement('button');
+    clearBtn.style.cssText = 'background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;margin-bottom:10px;';
+    clearBtn.textContent = 'Showing ' + dateFilter + ' \u2014 Clear filter';
+    clearBtn.addEventListener('click', function() { dateFilter = null; renderDailyBreakdown(); renderSessions(); });
+    el.appendChild(clearBtn);
+  }
+  sessions.forEach(function(s) {
+    var card = makeDiv('session-card');
+    var hdr = makeDiv('session-header');
+    var proj = makeDiv('session-project', s.project);
+    var cost = makeDiv('session-cost');
+    cost.textContent = unit === 'tokens' ? fmtTokens(s.totalInput + s.totalOutput) + ' tok' : '$' + s.estimatedCost.toFixed(3);
     hdr.appendChild(proj); hdr.appendChild(cost);
-    const meta = document.createElement('div'); meta.className = 'session-meta';
-    const dt = document.createElement('span'); dt.textContent = s.date;
-    const badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = shortModel(s.primaryModel);
-    const msgs = document.createElement('span'); msgs.textContent = s.msgCount + ' msgs';
-    const tok = document.createElement('span'); tok.textContent = fmt(s.totalInput + s.totalOutput) + ' tok';
-    meta.appendChild(dt); meta.appendChild(badge); meta.appendChild(msgs); meta.appendChild(tok);
-    card.appendChild(hdr); card.appendChild(meta); sl.appendChild(card);
+    var meta = makeDiv('session-meta');
+    meta.appendChild(makeSpan(null, s.date));
+    meta.appendChild(makeSpan('badge', shortModel(s.primaryModel)));
+    meta.appendChild(makeSpan(null, s.msgCount + ' msgs'));
+    meta.appendChild(makeSpan(null, fmt(s.totalInput + s.totalOutput) + ' tok'));
+    card.appendChild(hdr); card.appendChild(meta);
+    el.appendChild(card);
   });
 }
 
-document.getElementById('period-tabs').addEventListener('click', e => {
-  const btn = e.target.closest('.tab'); if (!btn) return;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+/* ── Render: Overview (orchestrator) ──────── */
+function renderOverview() {
+  if (!usageData) return;
+  renderStatCards();
+  renderCostTrend();
+  renderHeatmap();
+  renderModelTable();
+  renderDailyBreakdown();
+}
+
+/* ── Event: Period Tabs ───────────────────── */
+document.getElementById('period-tabs').addEventListener('click', function(e) {
+  var btn = e.target.closest('.tab'); if (!btn) return;
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
   btn.classList.add('active');
   currentDays = parseInt(btn.dataset.days);
-  fetchUsage(); fetchSessions();
+  dateFilter = null;
+  fetchUsage();
+  sessionsData = null;
+  if (document.getElementById('view-sessions').classList.contains('active')) fetchSessions();
 });
-document.querySelectorAll('nav button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+
+/* ── Event: Unit Toggle ───────────────────── */
+document.getElementById('unit-toggle').addEventListener('click', function(e) {
+  var btn = e.target.closest('.unit-btn'); if (!btn) return;
+  unit = btn.dataset.unit;
+  try { localStorage.setItem('sdUnit', unit); } catch(ex) {}
+  document.querySelectorAll('.unit-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.unit === unit); });
+  if (usageData) renderOverview();
+  if (sessionsData) renderSessions();
+});
+
+/* ── Event: Refresh Button ────────────────── */
+document.getElementById('refresh-btn').addEventListener('click', function() {
+  var btn = this;
+  btn.classList.add('spinning');
+  dateFilter = null;
+  sessionsData = null;
+  fetchUsage().then(function() { btn.classList.remove('spinning'); });
+  if (document.getElementById('view-sessions').classList.contains('active')) fetchSessions();
+});
+
+/* ── Event: Bottom Nav ────────────────────── */
+document.querySelectorAll('nav button').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('nav button').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
     document.getElementById('view-' + btn.dataset.view).classList.add('active');
     if (btn.dataset.view === 'sessions' && !sessionsData) fetchSessions();
   });
 });
+
+/* ── Init: Restore Unit Toggle State ──────── */
+document.querySelectorAll('.unit-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.unit === unit); });
+
+/* ── Boot ─────────────────────────────────── */
 fetchUsage();
 </script>
 </body>
