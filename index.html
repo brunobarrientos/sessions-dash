@@ -62,7 +62,7 @@ header h1 { font-size: 18px; font-weight: 600; }
 .refresh-btn svg { width: 16px; height: 16px; }
 .refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.header-bottom { display: flex; gap: 4px; }
+.header-bottom { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
 .tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 3px; }
 .tab {
   padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
@@ -313,6 +313,9 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
       <button class="tab" data-days="90">90d</button>
       <button class="tab" data-days="9999">All</button>
     </div>
+    <select id="model-filter" style="background:var(--bg);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;margin-left:auto;">
+      <option value="">All Models</option>
+    </select>
   </div>
 </header>
 
@@ -365,6 +368,7 @@ var currentDays = 7;
 var usageData = null;
 var sessionsData = null;
 var dateFilter = null;
+var modelFilter = '';
 
 var unit = (function() {
   try { return localStorage.getItem('sdUnit') || '$'; } catch(e) { return '$'; }
@@ -453,11 +457,29 @@ function fetchUsage() {
     .then(function(data) {
       usageData = data;
       if (currentDays === 0) filterToday();
+      updateModelFilterOptions();
       renderOverview();
     })
     .catch(function() {
       showLoading(document.getElementById('stats-grid'), 'Failed to load');
     });
+}
+
+function updateModelFilterOptions() {
+  var select = document.getElementById('model-filter');
+  var currentVal = select.value;
+  var models = Object.keys(usageData.byModel || {}).sort();
+  select.innerHTML = '<option value="">All Models</option>';
+  models.forEach(function(m) {
+    var opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = shortModel(m);
+    select.appendChild(opt);
+  });
+  select.value = currentVal;
+  if (currentVal && !models.includes(currentVal)) {
+    modelFilter = '';
+  }
 }
 function fetchSessions() {
   showLoading(document.getElementById('session-list'));
@@ -498,7 +520,7 @@ function renderStatCards() {
   var d = usageData;
   var el = document.getElementById('stats-grid');
   clearEl(el);
-  var bm = d.byModel;
+  var bm = modelFilter ? {[modelFilter]: d.byModel[modelFilter]} : d.byModel;
   var allInput = Object.values(bm).reduce(function(s,u) { return s + (u.input||0); }, 0);
   var allOutput = Object.values(bm).reduce(function(s,u) { return s + (u.output||0); }, 0);
   var allCache = Object.values(bm).reduce(function(s,u) { return s + (u.cacheRead||0) + (u.cacheWrite||0); }, 0);
@@ -562,8 +584,9 @@ function renderCostTrend() {
 
   var values = buckets.map(function(day) {
     var v = 0;
-    Object.entries(day.models || {}).forEach(function(pair) {
-      v += useTokens ? totalTokens(pair[1]) : costOf(pair[0], pair[1]);
+    var models = modelFilter ? {[modelFilter]: day.models[modelFilter]} : (day.models || {});
+    Object.entries(models).forEach(function(pair) {
+      if (pair[1]) v += useTokens ? totalTokens(pair[1]) : costOf(pair[0], pair[1]);
     });
     return { date: day.date, value: v };
   });
@@ -708,8 +731,9 @@ function renderModelTable() {
   titleEl.textContent = unit === '$' ? 'Cost by Model' : 'Token Usage by Model';
   clearEl(el);
 
-  var models = Object.entries(usageData.byModel || {});
-  if (models.length === 0) {
+  var rawModels = usageData.byModel || {};
+  var models = modelFilter ? [[modelFilter, rawModels[modelFilter]]] : Object.entries(rawModels);
+  if (models.length === 0 || (modelFilter && !rawModels[modelFilter])) {
     showEmpty(el, 'No usage data');
     return;
   }
@@ -771,14 +795,18 @@ function renderDailyBreakdown() {
   var useCost = unit === '$';
   var maxVal = 0;
   byDay.forEach(function(day) {
-    Object.entries(day.models || {}).forEach(function(pair) {
-      var v = useCost ? costOf(pair[0], pair[1]) : totalTokens(pair[1]);
-      if (v > maxVal) maxVal = v;
+    var models = modelFilter ? {[modelFilter]: day.models[modelFilter]} : (day.models || {});
+    Object.entries(models).forEach(function(pair) {
+      if (pair[1]) {
+        var v = useCost ? costOf(pair[0], pair[1]) : totalTokens(pair[1]);
+        if (v > maxVal) maxVal = v;
+      }
     });
   });
 
   byDay.forEach(function(day) {
-    var entries = Object.entries(day.models || {}).map(function(pair) {
+    var models = modelFilter ? {[modelFilter]: day.models[modelFilter]} : (day.models || {});
+    var entries = Object.entries(models).filter(function(pair) { return pair[1]; }).map(function(pair) {
       var v = useCost ? costOf(pair[0], pair[1]) : totalTokens(pair[1]);
       return [pair[0], pair[1], v];
     }).sort(function(a,b) { return b[2] - a[2]; });
@@ -905,6 +933,12 @@ document.getElementById('refresh-btn').addEventListener('click', function() {
   sessionsData = null;
   fetchUsage().then(function() { btn.classList.remove('spinning'); });
   if (document.getElementById('view-sessions').classList.contains('active')) fetchSessions();
+});
+
+/* ── Event: Model Filter ──────────────────── */
+document.getElementById('model-filter').addEventListener('change', function() {
+  modelFilter = this.value;
+  if (usageData) renderOverview();
 });
 
 /* ── Event: Bottom Nav ────────────────────── */
