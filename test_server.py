@@ -1,5 +1,5 @@
 #!/usr/bin/env pytest
-"""Unit tests for sessions-dash server.py business logic."""
+"""Unit tests for ai-usage server.py business logic."""
 
 import os
 import sys
