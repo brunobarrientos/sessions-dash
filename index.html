@@ -357,9 +357,14 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
   </div>
 
   <div id="view-sessions" class="view">
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <input type="text" id="session-search" placeholder="Filter by project..." style="flex:1;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;box-sizing:border-box;">
-      <button id="export-csv" style="padding:10px 16px;background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap;">Export CSV</button>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+      <input type="text" id="session-search" placeholder="Filter by project..." style="flex:1;min-width:150px;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;box-sizing:border-box;">
+      <select id="session-sort" style="padding:10px;background:var(--bg);color:var(--text2);border:1px solid var(--border);border-radius:6px;font-size:13px;">
+        <option value="date">Sort: Newest</option>
+        <option value="cost">Sort: Cost</option>
+        <option value="tokens">Sort: Tokens</option>
+      </select>
+      <button id="export-csv" style="padding:10px 16px;background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap;">Export</button>
     </div>
     <div id="session-list"></div>
   </div>
@@ -1012,6 +1017,13 @@ function renderSessions() {
   if (searchTerm) {
     sessions = sessions.filter(function(s) { return (s.project || '').toLowerCase().includes(searchTerm); });
   }
+  var sortBy = document.getElementById('session-sort').value;
+  if (sortBy === 'cost') {
+    sessions.sort(function(a,b) { return (b.estimatedCost || 0) - (a.estimatedCost || 0); });
+  } else if (sortBy === 'tokens') {
+    sessions.sort(function(a,b) { return ((b.totalInput||0)+(b.totalOutput||0)) - ((a.totalInput||0)+(a.totalOutput||0)); });
+  }
+  // default: date (already sorted by mtime desc)
   if (!sessions.length) {
     showLoading(el, dateFilter ? 'No sessions on ' + dateFilter : (searchTerm ? 'No matching sessions' : 'No sessions found'));
     return;
@@ -1132,6 +1144,11 @@ document.getElementById('model-filter').addEventListener('change', function() {
 
 /* ── Event: Session Search ────────────────── */
 document.getElementById('session-search').addEventListener('input', function() {
+  if (sessionsData) renderSessions();
+});
+
+/* ── Event: Session Sort ─────────────────── */
+document.getElementById('session-sort').addEventListener('change', function() {
   if (sessionsData) renderSessions();
 });
 
