@@ -251,5 +251,22 @@ class TestComputeUsageWithOffset:
         assert result['totalEstimatedCost'] == 0
 
 
+class TestComputeHourlyActivity:
+    """Tests for compute_hourly_activity() function."""
+
+    @patch('os.path.isdir')
+    @patch('os.listdir')
+    def test_hourly_returns_data(self, mock_listdir, mock_isdir):
+        """Test that hourly activity returns proper structure."""
+        from server import compute_hourly_activity
+        mock_isdir.return_value = True
+        mock_listdir.return_value = []
+        result = compute_hourly_activity(7)
+        assert 'byHour' in result
+        assert 'byDayOfWeek' in result
+        assert len(result['byHour']) == 24
+        assert len(result['byDayOfWeek']) == 7
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

@@ -364,6 +364,47 @@ def compute_sessions(days=7, limit=50):
     return {'sessions': sessions[:limit], 'total': len(sessions), 'days': days}
 
 
+def compute_hourly_activity(days=7):
+    """Compute usage breakdown by hour of day."""
+    claude_dir = os.path.expanduser('~/.claude/projects')
+    if not os.path.isdir(claude_dir):
+        return {'byHour': [0]*24, 'byDayOfWeek': [0]*7, 'days': days}
+
+    cutoff = datetime.now() - timedelta(days=days)
+    cutoff_str = cutoff.strftime('%Y-%m-%d')
+    by_hour = [0] * 24
+    by_dow = [0] * 7  # 0=Sunday
+
+    for project_folder in os.listdir(claude_dir):
+        project_path = os.path.join(claude_dir, project_folder)
+        if not os.path.isdir(project_path):
+            continue
+
+        for jsonl_file in glob.glob(os.path.join(project_path, '*.jsonl')):
+            try:
+                with open(jsonl_file, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or '"timestamp"' not in line:
+                            continue
+                        try:
+                            entry = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        ts = entry.get('timestamp', '')
+                        if ts and ts[:10] >= cutoff_str:
+                            try:
+                                dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
+                                by_hour[dt.hour] += 1
+                                by_dow[dt.weekday()] += 1
+                            except Exception:
+                                continue
+            except Exception:
+                continue
+
+    return {'byHour': by_hour, 'byDayOfWeek': by_dow, 'days': days}
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):
         pass  # Silence request logs
@@ -382,6 +423,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             days = int(params.get('days', ['7'])[0])
             limit = int(params.get('limit', ['50'])[0])
             self._json(compute_sessions(days, limit))
+        elif parsed.path == '/api/hourly':
+            days = int(params.get('days', ['7'])[0])
+            self._json(compute_hourly_activity(days))
         elif parsed.path in ('/', '/index.html'):
             self._serve_file('index.html')
         elif parsed.path == '/health':
