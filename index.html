@@ -554,6 +554,7 @@ function renderStatCards() {
   var useCost = unit === '$';
   var monthlyProjection = avgPerDay * 30;
   var avgPerSession = d.totalSessions > 0 ? d.totalEstimatedCost / d.totalSessions : 0;
+  var cacheEfficiency = (allInput + allOutput) > 0 ? (allCache / (allInput + allOutput + allCache) * 100).toFixed(1) : 0;
   var changePct = d.changePercent;
   var prevCost = d.previousCost || 0;
   var changeCard = changePct !== undefined ? [{
@@ -570,6 +571,7 @@ function renderStatCards() {
     { label: 'Sessions', value: d.totalSessions.toString(), color: 'cyan' },
     { label: 'Real Tokens $', value: '$' + totalReal.toFixed(2), color: 'green' },
     { label: 'Cache $', value: '$' + totalCacheCost.toFixed(2), color: 'green' },
+    { label: 'Cache Eff.', value: cacheEfficiency + '%', color: 'purple' },
     { label: 'Models Used', value: modelCount.toString(), color: 'purple' },
   ]) : [
     { label: 'Total Tokens', value: fmtTokens(allInput + allOutput), color: 'amber' },
@@ -578,6 +580,7 @@ function renderStatCards() {
     { label: 'Cache Tokens', value: fmtTokens(allCache), color: 'cyan' },
     { label: 'Proj. Month', value: fmtTokens((allInput + allOutput) * 30 / numDays), color: 'amber' },
     { label: 'Sessions', value: d.totalSessions.toString(), color: 'cyan' },
+    { label: 'Cache Eff.', value: cacheEfficiency + '%', color: 'purple' },
     { label: 'Models Used', value: modelCount.toString(), color: 'purple' },
   ];
 
