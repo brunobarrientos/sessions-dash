@@ -316,6 +316,11 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
           <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
         </svg>
       </button>
+      <button class="refresh-btn" id="compact-btn" title="Toggle compact mode" style="margin-left:4px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h10"/>
+        </svg>
+      </button>
     </div>
   </div>
   <div class="header-bottom">
@@ -412,6 +417,7 @@ var dateFilter = null;
 var modelFilter = '';
 var autoRefresh = false;
 var autoRefreshTimer = null;
+var compactMode = false;
 
 var unit = (function() {
   try { return localStorage.getItem('sdUnit') || '$'; } catch(e) { return '$'; }
@@ -1106,11 +1112,25 @@ function renderOverview() {
   document.getElementById('last-updated').textContent =
     'Updated ' + now.getHours().toString().padStart(2,'0') + ':' +
     now.getMinutes().toString().padStart(2,'0');
+
+  // Toggle sections based on compact mode
+  document.getElementById('trend-title').parentElement.style.display = compactMode ? 'none' : 'block';
+  document.getElementById('trend-title').nextElementSibling.style.display = compactMode ? 'none' : 'block';
+  var sessionActivitySection = document.getElementById('heatmap').parentElement.previousElementSibling;
+  if (sessionActivitySection) sessionActivitySection.style.display = compactMode ? 'none' : 'block';
+  document.getElementById('heatmap').parentElement.style.display = compactMode ? 'none' : 'block';
+  document.getElementById('model-title').parentElement.style.display = compactMode ? 'none' : 'block';
+  document.getElementById('model-title').nextElementSibling.style.display = compactMode ? 'none' : 'block';
+  document.getElementById('daily-title').parentElement.style.display = compactMode ? 'none' : 'block';
+  document.getElementById('daily-breakdown').style.display = compactMode ? 'none' : 'block';
+
   renderStatCards();
-  renderCostTrend();
-  renderHeatmap();
-  renderModelTable();
-  renderDailyBreakdown();
+  if (!compactMode) {
+    renderCostTrend();
+    renderHeatmap();
+    renderModelTable();
+    renderDailyBreakdown();
+  }
 }
 
 /* ── Event: Period Tabs ───────────────────── */
@@ -1169,6 +1189,13 @@ function toggleAutoRefresh() {
   }
 }
 document.getElementById('auto-refresh-btn').addEventListener('click', toggleAutoRefresh);
+
+/* ── Event: Compact Mode ──────────────────── */
+document.getElementById('compact-btn').addEventListener('click', function() {
+  compactMode = !compactMode;
+  this.style.color = compactMode ? 'var(--accent)' : '';
+  if (usageData) renderOverview();
+});
 
 /* ── Event: Model Filter ──────────────────── */
 document.getElementById('model-filter').addEventListener('change', function() {
