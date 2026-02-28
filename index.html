@@ -622,6 +622,22 @@ function renderStatCards() {
   var d = usageData;
   var el = document.getElementById('stats-grid');
   clearEl(el);
+
+  // Spending alert
+  var dailyCosts = (d.byDay || []).map(function(day) {
+    return Object.entries(day.models || {}).reduce(function(sum, pair) {
+      return sum + costOf(pair[0], pair[1]);
+    }, 0);
+  });
+  var maxDaily = Math.max.apply(null, dailyCosts.concat([0]));
+  var threshold = 50; // $50 alert threshold
+  if (maxDaily > threshold) {
+    var alertDiv = document.createElement('div');
+    alertDiv.style.cssText = 'grid-column:1/-1;background:rgba(248,81,73,0.15);border:1px solid var(--red);border-radius:8px;padding:10px;text-align:center;margin-bottom:8px;color:var(--red);font-size:13px;';
+    alertDiv.textContent = 'Warning: Daily cost reached $' + maxDaily.toFixed(0) + ' (threshold: $' + threshold + ')';
+    el.appendChild(alertDiv);
+  }
+
   var bm = modelFilter ? {[modelFilter]: d.byModel[modelFilter]} : d.byModel;
   var allInput = Object.values(bm).reduce(function(s,u) { return s + (u.input||0); }, 0);
   var allOutput = Object.values(bm).reduce(function(s,u) { return s + (u.output||0); }, 0);
