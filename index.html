@@ -359,6 +359,18 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
     </div>
     <div id="session-list"></div>
   </div>
+
+  <div id="view-activity" class="view">
+    <div class="section-title">Hourly Activity</div>
+    <div class="chart-card">
+      <div id="hourly-chart" style="height:180px;padding:16px;display:flex;align-items:flex-end;gap:2px;"></div>
+    </div>
+    <div class="section-title">Day of Week</div>
+    <div class="chart-card">
+      <div id="dow-chart" style="height:120px;padding:16px;display:flex;align-items:flex-end;gap:8px;justify-content:space-around;"></div>
+    </div>
+  </div>
+
   <div class="page-bottom"></div>
 </div>
 
@@ -370,6 +382,10 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
   <button data-view="sessions">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
     Sessions
+  </button>
+  <button data-view="activity">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 17h8m-8-5h8m-6-4h4M6 17h.01M6 13h.01M6 9h.01M6 5h.01"/></svg>
+    Activity
   </button>
 </nav>
 
@@ -512,6 +528,63 @@ function fetchSessions() {
       showLoading(document.getElementById('session-list'), 'Failed to load');
     });
 }
+var hourlyData = null;
+function fetchHourly() {
+  var days = currentDays === 0 ? 1 : currentDays;
+  return fetch('/api/hourly?days=' + days)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      hourlyData = data;
+      renderHourly();
+    })
+    .catch(function() {});
+}
+function renderHourly() {
+  if (!hourlyData) return;
+  var hourlyEl = document.getElementById('hourly-chart');
+  var dowEl = document.getElementById('dow-chart');
+  clearEl(hourlyEl); clearEl(dowEl);
+
+  var byHour = hourlyData.byHour || [];
+  var maxHour = Math.max.apply(null, byHour.concat([1]));
+  byHour.forEach(function(v, h) {
+    var bar = document.createElement('div');
+    bar.style.flex = '1';
+    bar.style.background = 'var(--accent)';
+    bar.style.borderRadius = '2px 2px 0 0';
+    bar.style.minHeight = '2px';
+    bar.style.height = (v / maxHour * 100) + '%';
+    bar.title = h + ':00 - ' + v + ' requests';
+    hourlyEl.appendChild(bar);
+  });
+
+  var DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var byDow = hourlyData.byDayOfWeek || [];
+  var maxDow = Math.max.apply(null, byDow.concat([1]));
+  byDow.forEach(function(v, d) {
+    var bar = document.createElement('div');
+    bar.style.flex = '1';
+    bar.style.display = 'flex';
+    bar.style.flexDirection = 'column';
+    bar.style.alignItems = 'center';
+    var fill = document.createElement('div');
+    fill.style.width = '100%';
+    fill.style.background = d >= 5 ? 'var(--amber)' : 'var(--accent)';
+    fill.style.borderRadius = '3px';
+    fill.style.minHeight = '2px';
+    fill.style.height = (v / maxDow * 80) + 'px';
+    var label = document.createElement('div');
+    label.style.fontSize = '10px';
+    label.style.color = 'var(--text-muted)';
+    label.style.marginTop = '4px';
+    label.textContent = DOW[d];
+    bar.appendChild(fill);
+    bar.appendChild(label);
+    bar.title = DOW[d] + ' - ' + v + ' requests';
+    dowEl.appendChild(bar);
+  });
+}
+
 function filterToday() {
   if (!usageData) return;
   var today = new Date().toISOString().slice(0,10);
@@ -1066,6 +1139,7 @@ document.querySelectorAll('nav button').forEach(function(btn) {
     document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
     document.getElementById('view-' + btn.dataset.view).classList.add('active');
     if (btn.dataset.view === 'sessions' && !sessionsData) fetchSessions();
+    if (btn.dataset.view === 'activity' && !hourlyData) fetchHourly();
   });
 });
 
