@@ -911,6 +911,24 @@ function renderModelTable() {
     tbody.appendChild(tr);
   });
   table.appendChild(tbody); el.appendChild(table);
+
+  // Mini distribution bar
+  var totalVal = Object.entries(rawModels).reduce(function(s, pair) { return s + (unit === '$' ? costOf(pair[0], pair[1]) : totalTokens(pair[1])); }, 0);
+  if (totalVal > 0 && sorted.length > 1) {
+    var barWrap = document.createElement('div');
+    barWrap.style.cssText = 'display:flex;height:16px;border-radius:8px;overflow:hidden;margin-top:12px;';
+    sorted.forEach(function(pair) {
+      var val = unit === '$' ? costOf(pair[0], pair[1]) : totalTokens(pair[1]);
+      var pct = (val / totalVal * 100);
+      if (pct > 0.5) {
+        var seg = document.createElement('div');
+        seg.style.cssText = 'width:' + pct + '%;background:' + (MODEL_COLORS[pair[0]] || '#888') + ';';
+        seg.title = shortModel(pair[0]) + ': ' + pct.toFixed(1) + '%';
+        barWrap.appendChild(seg);
+      }
+    });
+    el.appendChild(barWrap);
+  }
 }
 
 /* ── Render: Daily Breakdown ──────────────── */
