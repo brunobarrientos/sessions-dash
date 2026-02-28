@@ -398,7 +398,9 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
 document.getElementById('accueilLink').href = location.protocol + '//' + location.hostname + ':8080';
 
 /* ── Global State ─────────────────────────── */
-var currentDays = 7;
+var currentDays = (function() {
+  try { return parseInt(localStorage.getItem('sdDays')) || 7; } catch(e) { return 7; }
+})();
 var usageData = null;
 var sessionsData = null;
 var dateFilter = null;
@@ -1071,6 +1073,7 @@ document.getElementById('period-tabs').addEventListener('click', function(e) {
   document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
   btn.classList.add('active');
   currentDays = parseInt(btn.dataset.days);
+  try { localStorage.setItem('sdDays', currentDays); } catch(ex) {}
   dateFilter = null;
   fetchUsage();
   sessionsData = null;
@@ -1149,6 +1152,9 @@ document.querySelectorAll('nav button').forEach(function(btn) {
 
 /* ── Init: Restore Unit Toggle State ──────── */
 document.querySelectorAll('.unit-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.unit === unit); });
+
+/* ── Init: Restore Period Tab ─────────────── */
+document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', parseInt(t.dataset.days) === currentDays); });
 
 /* ── Keyboard Shortcuts ─────────────────── */
 document.addEventListener('keydown', function(e) {
