@@ -321,6 +321,12 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
           <path d="M4 6h16M4 12h16M4 18h10"/>
         </svg>
       </button>
+      <button class="refresh-btn" id="share-btn" title="Copy stats summary" style="margin-left:4px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+        </svg>
+      </button>
     </div>
   </div>
   <div class="header-bottom">
@@ -1014,6 +1020,27 @@ function toggleDateFilter(date) {
   }
 }
 
+/* ── Share Summary ────────────────────────── */
+function copySummary() {
+  if (!usageData) return;
+  var d = usageData;
+  var days = currentDays === 0 ? 1 : currentDays;
+  var numDays = d.byDay ? d.byDay.length : 1;
+  var avgPerDay = numDays > 0 ? d.totalEstimatedCost / numDays : 0;
+  var monthly = avgPerDay * 30;
+  var summary = 'AI Usage (' + days + ' days)\n' +
+    'Total: $' + d.totalEstimatedCost.toFixed(2) + '\n' +
+    'Avg/day: $' + avgPerDay.toFixed(2) + '\n' +
+    'Sessions: ' + d.totalSessions + '\n' +
+    'Models: ' + Object.keys(d.byModel || {}).join(', ');
+  navigator.clipboard.writeText(summary).then(function() {
+    var btn = document.getElementById('share-btn');
+    var orig = btn.innerHTML;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+    setTimeout(function() { btn.innerHTML = orig; }, 1500);
+  });
+}
+
 /* ── Export CSV ───────────────────────────── */
 function exportSessionsCSV() {
   if (!sessionsData || !sessionsData.sessions.length) return;
@@ -1196,6 +1223,9 @@ document.getElementById('compact-btn').addEventListener('click', function() {
   this.style.color = compactMode ? 'var(--accent)' : '';
   if (usageData) renderOverview();
 });
+
+/* ── Event: Share Summary ────────────────── */
+document.getElementById('share-btn').addEventListener('click', copySummary);
 
 /* ── Event: Model Filter ──────────────────── */
 document.getElementById('model-filter').addEventListener('change', function() {
