@@ -428,6 +428,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._json(compute_hourly_activity(days))
         elif parsed.path in ('/', '/index.html'):
             self._serve_file('index.html')
+        elif parsed.path == '/manifest.json':
+            self._serve_file('manifest.json', 'application/json')
         elif parsed.path == '/health':
             self._json({'ok': True})
         else:
@@ -442,13 +444,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _serve_file(self, filename):
+    def _serve_file(self, filename, content_type='text/html; charset=utf-8'):
         filepath = os.path.join(SCRIPT_DIR, filename)
         try:
             with open(filepath, 'rb') as f:
                 content = f.read()
             self.send_response(200)
-            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Type', content_type)
             self.end_headers()
             self.wfile.write(content)
         except FileNotFoundError:
