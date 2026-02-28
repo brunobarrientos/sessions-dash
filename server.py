@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sessions Dashboard — lightweight Claude Code token usage tracker.
+"""AI Usage — lightweight Claude Code token usage tracker.
 
 Parses ~/.claude/projects/ JSONL session files and displays token usage
 and estimated costs. No dependencies beyond Python stdlib.
@@ -466,5 +466,5 @@ class ThreadedServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 if __name__ == '__main__':
     with ThreadedServer(('0.0.0.0', PORT), Handler) as httpd:
-        print(f'Sessions Dashboard running on http://0.0.0.0:{PORT}')
+        print(f'AI Usage running on http://0.0.0.0:{PORT}')
         httpd.serve_forever()

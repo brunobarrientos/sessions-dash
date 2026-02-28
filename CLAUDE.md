@@ -1,4 +1,4 @@
-# sessions-dash - Project Instructions
+# ai-usage - Project Instructions
 
 ## Token Emergency: Switching to a Cheaper Model
 
@@ -13,7 +13,7 @@ When Claude Sonnet tokens are exhausted, use one of these wrappers in a **new te
 **To start a new interactive session with MiniMax:**
 ```bash
 source ~/.bashrc
-cd ~/AI/sessions-dash
+cd ~/AI/ai-usage
 minimax
 ```
 
@@ -28,7 +28,7 @@ Runs as a systemd user service on port 8766, accessible on Tailscale at `http://
 ## File Structure
 
 ```
-sessions-dash/
+ai-usage/
   server.py       # Python HTTP backend (stdlib only, ~310 lines)
   index.html      # Frontend SPA (single file, dark theme)
   CLAUDE.md       # This file (agent instructions)
@@ -36,7 +36,7 @@ sessions-dash/
 
 Related files outside this project:
 - `~/.claude/projects/` — Claude Code session JSONL files (token usage source)
-- `~/.config/systemd/user/sessions-dash.service` — systemd service definition
+- `~/.config/systemd/user/ai-usage.service` — systemd service definition
 
 ## Key Design Constraints
 
@@ -51,10 +51,10 @@ Related files outside this project:
 
 ```bash
 # After editing server.py or index.html, restart the service:
-systemctl --user restart sessions-dash
+systemctl --user restart ai-usage
 
 # Watch logs:
-journalctl --user -u sessions-dash -f
+journalctl --user -u ai-usage -f
 
 # Test endpoints:
 curl -s http://localhost:8766/api/usage?days=7 | python3 -m json.tool
@@ -84,15 +84,15 @@ When adding a new model, update BOTH files.
 | Task | How |
 |------|-----|
 | Update model pricing | Edit `MODEL_PRICING` in server.py + `RATES` in index.html |
-| Service not starting | `journalctl --user -u sessions-dash -e` |
+| Service not starting | `journalctl --user -u ai-usage -e` |
 | Port conflict | `fuser 8766/tcp` |
-| Force restart | `systemctl --user restart sessions-dash` |
+| Force restart | `systemctl --user restart ai-usage` |
 
 ## Always Keep Service Running
 
 The systemd service should always be running. After making changes:
 
-1. Restart service: `systemctl --user restart sessions-dash`
-2. Verify it started: `systemctl --user status sessions-dash`
+1. Restart service: `systemctl --user restart ai-usage`
+2. Verify it started: `systemctl --user status ai-usage`
 3. Test endpoints: `curl -s http://localhost:8766/health`
 4. Only then consider the task complete
