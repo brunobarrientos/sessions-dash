@@ -1176,6 +1176,9 @@ document.addEventListener('keydown', function(e) {
 });
 
 /* ── Boot ─────────────────────────────────── */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function() {});
+}
 fetchUsage();
 </script>
 </body>

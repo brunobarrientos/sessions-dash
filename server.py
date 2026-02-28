@@ -430,6 +430,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._serve_file('index.html')
         elif parsed.path == '/manifest.json':
             self._serve_file('manifest.json', 'application/json')
+        elif parsed.path == '/sw.js':
+            self._serve_file('sw.js', 'application/javascript')
         elif parsed.path == '/health':
             self._json({'ok': True})
         else:
