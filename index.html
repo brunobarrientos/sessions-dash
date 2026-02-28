@@ -348,7 +348,10 @@ nav button svg { display: block; margin: 0 auto 3px; width: 20px; height: 20px; 
   </div>
 
   <div id="view-sessions" class="view">
-    <input type="text" id="session-search" placeholder="Filter by project..." style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;margin-bottom:10px;box-sizing:border-box;">
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <input type="text" id="session-search" placeholder="Filter by project..." style="flex:1;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;box-sizing:border-box;">
+      <button id="export-csv" style="padding:10px 16px;background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap;">Export CSV</button>
+    </div>
     <div id="session-list"></div>
   </div>
   <div class="page-bottom"></div>
@@ -877,6 +880,36 @@ function toggleDateFilter(date) {
   }
 }
 
+/* ── Export CSV ───────────────────────────── */
+function exportSessionsCSV() {
+  if (!sessionsData || !sessionsData.sessions.length) return;
+  var sessions = sessionsData.sessions;
+  var searchTerm = (document.getElementById('session-search').value || '').toLowerCase();
+  if (searchTerm) {
+    sessions = sessions.filter(function(s) { return (s.project || '').toLowerCase().includes(searchTerm); });
+  }
+  var headers = ['Date', 'Project', 'Model', 'Input Tokens', 'Output Tokens', 'Total Tokens', 'Cost ($)'];
+  var rows = sessions.map(function(s) {
+    return [
+      s.date,
+      '"' + (s.project || '').replace(/"/g, '""') + '"',
+      s.primaryModel || '',
+      s.totalInput || 0,
+      s.totalOutput || 0,
+      (s.totalInput || 0) + (s.totalOutput || 0),
+      (s.estimatedCost || 0).toFixed(4)
+    ].join(',');
+  });
+  var csv = [headers.join(',')].concat(rows).join('\n');
+  var blob = new Blob([csv], {type: 'text/csv'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'sessions-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 /* ── Render: Sessions ─────────────────────── */
 function renderSessions() {
   if (!sessionsData) return;
@@ -987,6 +1020,9 @@ document.getElementById('model-filter').addEventListener('change', function() {
 document.getElementById('session-search').addEventListener('input', function() {
   if (sessionsData) renderSessions();
 });
+
+/* ── Event: Export CSV ────────────────────── */
+document.getElementById('export-csv').addEventListener('click', exportSessionsCSV);
 
 /* ── Event: Bottom Nav ────────────────────── */
 document.querySelectorAll('nav button').forEach(function(btn) {
